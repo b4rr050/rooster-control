@@ -21,12 +21,19 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // 🔥 ESTA LINHA É O QUE FALTAVA
-  await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
+
+  // se não há user, manda para login
+  if (!data.user) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("error", "Sessão expirada. Faz login.");
+    return NextResponse.redirect(url);
+  }
 
   return res;
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/login"],
+  matcher: ["/app/:path*"],
 };
