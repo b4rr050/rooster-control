@@ -55,6 +55,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <NavLink href="/app/transferencia" label="Transferências" />
               <NavLink href="/app/anilha" label="Anilhas" />
               <NavLink href="/app/historico-saidas" label="Histórico Saídas" />
+              <NavLink href="/app/perfil" label="Perfil" />
               {profile?.role === "ADMIN" && <NavLink href="/app/anilhas" label="Gerar Anilhas" />}
               {profile?.role === "ADMIN" && <NavLink href="/app/admin/historico-saidas" label="Hist. Saídas (Admin)" />}
               {profile?.role === "ADMIN" && <NavLink href="/app/admin" label="Admin" />}
