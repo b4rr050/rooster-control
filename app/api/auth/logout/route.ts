@@ -1,10 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function POST(req: NextRequest) {
-  const res = NextResponse.json({ ok: true });
-
-  const supabase = createServerClient(
+function createSupabase(req: NextRequest, res: NextResponse) {
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -20,16 +18,19 @@ export async function POST(req: NextRequest) {
       },
     }
   );
-
-  await supabase.auth.signOut();
-
-  // redirecionar para login (do lado do cliente)
-  return NextResponse.redirect(new URL("/login", req.url), {
-    headers: res.headers,
-  });
 }
 
-// Opcional: se alguém abrir /api/auth/logout no browser
-export async function GET() {
-  return NextResponse.json({ error: "Use POST" }, { status: 405 });
+export async function POST(req: NextRequest) {
+  const res = NextResponse.redirect(new URL("/login", req.url));
+  const supabase = createSupabase(req, res);
+  await supabase.auth.signOut();
+  return res;
+}
+
+// Para evitar 405 se alguém abrir /api/auth/logout diretamente
+export async function GET(req: NextRequest) {
+  const res = NextResponse.redirect(new URL("/login", req.url));
+  const supabase = createSupabase(req, res);
+  await supabase.auth.signOut();
+  return res;
 }
