@@ -1,10 +1,8 @@
-"use client";
-
 import { logoutAction } from "../actions/logout";
 
 export default function LogoutButton() {
   return (
-    <form action={logoutAction}>
+    <form action={logoutAction} method="post">
       <button type="submit" style={{ padding: "8px 10px", borderRadius: 8 }}>
         Logout
       </button>
