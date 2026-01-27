@@ -51,14 +51,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <nav style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <NavLink href="/app" label="Dashboard" />
               <NavLink href="/app/entrada" label="Entrada" />
-              <NavLink href="/app/transferencia" label="Transferência" />
               <NavLink href="/app/saida" label="Saída" />
-              <NavLink href="/app/anilha" label="Anilha" />
-              <NavLink href="/app/anilhas" label="Anilhas" />
+              <NavLink href="/app/transferencia" label="Transferências" />
+              <NavLink href="/app/anilha" label="Anilhas" />
               <NavLink href="/app/historico-saidas" label="Histórico Saídas" />
-              {profile?.role === "ADMIN" && <NavLink href="/app/admin" label="Admin" />}
+              {profile?.role === "ADMIN" && <NavLink href="/app/anilhas" label="Gerar Anilhas" />}
               {profile?.role === "ADMIN" && <NavLink href="/app/admin/historico-saidas" label="Hist. Saídas (Admin)" />}
-
+              {profile?.role === "ADMIN" && <NavLink href="/app/admin" label="Admin" />}
             </nav>
           </div>
 
