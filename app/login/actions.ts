@@ -5,18 +5,29 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "").trim();
+  const password = String(formData.get("password") ?? ""); // NÃO fazer trim
 
-  // ⚠️ createClient é async no Next 15
+  if (!email || !password) {
+    redirect("/login?error=" + encodeURIComponent("Preenche email e password"));
+  }
+
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    const msgLower = (error.message ?? "").toLowerCase();
+
+    // mensagens mais humanas
+    const friendly =
+      msgLower.includes("invalid") ||
+      msgLower.includes("credentials") ||
+      msgLower.includes("login") ||
+      msgLower.includes("password")
+        ? "Email ou password incorretos"
+        : "Erro de autenticação";
+
+    redirect("/login?error=" + encodeURIComponent(friendly));
   }
 
   redirect("/app");
