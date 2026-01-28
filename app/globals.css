@@ -1,7 +1,20 @@
 :root {
+  color-scheme: light;
+}
+html, body {
+  color-scheme: light;
+}
+
+:root {
   --background: #ffffff;
   --foreground: #171717;
 }
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light;
+  }
+}
+
 
 @media (prefers-color-scheme: dark) {
   :root {
