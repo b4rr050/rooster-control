@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
@@ -17,16 +17,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sem permissões." }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const year = Number(body.year);
-  const month = Number(body.month);
-  const count = Number(body.count);
+  const url = new URL(req.url);
+  const year = Number(url.searchParams.get("year"));
+  const month = Number(url.searchParams.get("month"));
 
-  if (!year || !month || !count) return NextResponse.json({ error: "year/month/count obrigatório" }, { status: 400 });
+  if (!year || !month) return NextResponse.json({ error: "year/month obrigatório" }, { status: 400 });
 
   const admin = createAdminClient();
-  const { error } = await admin.rpc("generate_ring_numbers", { p_year: year, p_month: month, p_count: count });
+  const { data, error } = await admin
+    .from("ring_pool")
+    .select("ring_number,status,batch_year,batch_month,seq,created_at")
+    .eq("batch_year", year)
+    .eq("batch_month", month)
+    .order("seq", { ascending: true })
+    .limit(10000);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ rows: data ?? [] });
 }
