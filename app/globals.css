@@ -226,3 +226,31 @@ table th {
 .content {
   padding: 18px;
 }
+/* Chips das anilhas */
+.ringGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.ringChip {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ringChip:hover {
+  background: #f3f4f6;
+}
+
+.ringChipSelected {
+  background: #e9f5ff;
+  border-color: #93c5fd;
+}
