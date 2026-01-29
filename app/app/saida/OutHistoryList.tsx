@@ -10,7 +10,23 @@ type MovementOut = {
   out_reason: string | null;
   weight_kg: number | null;
   notes: string | null;
+  from_producer_id: string | null;
 };
+
+async function getMyProducerId(supabase: ReturnType<typeof createClient>) {
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("producer_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) return null;
+  return (data?.producer_id as string | null) ?? null;
+}
 
 export default function OutHistoryList({ limit = 25 }: { limit?: number }) {
   const supabase = createClient();
@@ -19,10 +35,19 @@ export default function OutHistoryList({ limit = 25 }: { limit?: number }) {
 
   async function load() {
     setErr(null);
+
+    const producerId = await getMyProducerId(supabase);
+    if (!producerId) {
+      setErr("Sem produtor associado ao utilizador.");
+      setRows([]);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("movements")
-      .select("id,date,ring_number,out_reason,weight_kg,notes")
+      .select("id,date,ring_number,out_reason,weight_kg,notes,from_producer_id")
       .eq("type", "OUT")
+      .eq("from_producer_id", producerId)
       .order("date", { ascending: false })
       .limit(limit);
 
@@ -36,13 +61,13 @@ export default function OutHistoryList({ limit = 25 }: { limit?: number }) {
   }, []);
 
   return (
-    <section style={{ background: "white", border: "1px solid #eee", borderRadius: 12, padding: 16 }}>
+    <section className="card">
       <div style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
         <h2 style={{ margin: 0 }}>Últimas saídas</h2>
-        <button onClick={load}>Atualizar</button>
+        <button type="button" onClick={load}>Atualizar</button>
       </div>
 
-      {err && <p style={{ color: "crimson" }}>Erro: {err}</p>}
+      {err && <p className="error">Erro: {err}</p>}
 
       {rows.length === 0 ? (
         <p style={{ marginBottom: 0, opacity: 0.8 }}>Sem saídas registadas.</p>
@@ -60,7 +85,7 @@ export default function OutHistoryList({ limit = 25 }: { limit?: number }) {
             </thead>
             <tbody>
               {rows.map(r => (
-                <tr key={r.id} style={{ borderTop: "1px solid #eee" }}>
+                <tr key={r.id}>
                   <td style={{ whiteSpace: "nowrap" }}>{new Date(r.date).toLocaleString("pt-PT")}</td>
                   <td style={{ fontFamily: "monospace" }}>{r.ring_number}</td>
                   <td>{r.out_reason ?? ""}</td>
