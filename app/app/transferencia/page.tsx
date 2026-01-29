@@ -194,26 +194,22 @@ export default function TransferenciaPage() {
         {filtered.length === 0 ? (
           <p style={{ marginTop: 12 }}>Sem anilhas ativas.</p>
         ) : (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-            {filtered.map(r => {
-              const isSel = !!selected[r.ring_number];
-              return (
-                <button
-                  key={r.ring_number}
-                  onClick={() => toggle(r.ring_number)}
-                  style={{
-                    border: "1px solid #eee",
-                    padding: "6px 10px",
-                    borderRadius: 999,
-                    fontFamily: "monospace",
-                    background: isSel ? "#e9f5ff" : "#fcfcfc",
-                  }}
-                >
-                  {r.ring_number}
-                </button>
-              );
-            })}
-          </div>
+          <div className="ringGrid">
+  {filtered.map(r => {
+    const isSel = !!selected[r.ring_number];
+    return (
+      <button
+        type="button"
+        key={r.ring_number}
+        onClick={() => toggle(r.ring_number)}
+        className={`ringChip ${isSel ? "ringChipSelected" : ""}`}
+      >
+        {r.ring_number}
+      </button>
+    );
+  })}
+</div>
+
         )}
       </section>
 
