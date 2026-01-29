@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import ProducerTransferHistory from "./ProducerTransferHistory";
 
 type RoosterRow = { ring_number: string };
 type Producer = { id: string; name: string | null };
@@ -361,6 +362,8 @@ export default function ProducerTransferClient() {
           </div>
         )}
       </section>
+      <ProducerTransferHistory limit={25} />
+
     </main>
   );
 }
