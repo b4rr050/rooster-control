@@ -1,33 +1,27 @@
 :root {
-  /* força o browser a usar sempre o esquema claro */
   color-scheme: light;
-
-  --bg: #f6f7f9;
-  --card: #ffffff;
-  --text: #111827;
+  --bg: #ffffff;
+  --fg: #111111;
   --muted: #6b7280;
   --border: #e5e7eb;
-
+  --card: #f9fafb;
   --primary: #111827;
-  --primaryText: #ffffff;
-}
-
-* {
-  box-sizing: border-box;
 }
 
 html,
 body {
-  padding: 0;
-  margin: 0;
   max-width: 100vw;
   overflow-x: hidden;
   background: var(--bg);
-  color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji",
-    "Segoe UI Emoji";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  color: var(--fg);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 a {
@@ -35,30 +29,13 @@ a {
   text-decoration: none;
 }
 
-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 18px;
-}
-
-header {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-}
-
-/* botões */
 button {
   background: var(--primary);
-  color: var(--primaryText);
-  border: 1px solid var(--primary);
-  border-radius: 10px;
+  color: white;
+  border: none;
+  border-radius: 8px;
   padding: 8px 12px;
-  font-weight: 600;
   cursor: pointer;
-}
-
-button:hover {
-  filter: brightness(0.95);
 }
 
 button:disabled {
@@ -66,40 +43,17 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* inputs */
 input,
-select,
-textarea {
-  border: 1px solid var(--border);
-  border-radius: 10px;
+select {
   padding: 8px 10px;
-  background: var(--card);
-  color: var(--text);
-  outline: none;
+  border-radius: 8px;
+  border: 1px solid var(--border);
 }
 
-input::placeholder {
-  color: #9ca3af;
-}
-
-/* tabelas */
-table th {
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-table td,
-table th {
-  border-bottom: 1px solid var(--border);
-}
-
-/* helper */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 16px;
 }
 
@@ -108,149 +62,26 @@ table th {
 }
 
 .error {
-  color: #b91c1c;
-}
-.success {
-  color: #065f46;
-}
-.shell {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  min-height: 100vh;
+  color: crimson;
 }
 
-.sidebar {
-  background: #0b1220;
-  color: #e5e7eb;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.sidebarBrand {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 10px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.06);
-}
-
-.brandDot {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: #22c55e;
-}
-
-.brandTitle {
-  font-weight: 800;
-  letter-spacing: 0.2px;
-}
-
-.brandSub {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.sidebarNav {
-  display: grid;
-  gap: 6px;
-}
-
-.navItem {
-  padding: 10px 12px;
-  border-radius: 12px;
-  color: #e5e7eb;
-  text-decoration: none;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.08);
-  font-weight: 600;
-}
-
-.navItem:hover {
-  background: rgba(255,255,255,0.10);
-}
-
-.sidebarFooter {
-  margin-top: auto;
-  display: flex;
-  justify-content: flex-start;
-}
-
-.pill {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.10);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.topbar {
-  height: 62px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 18px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--border);
-}
-
-.topbarRight {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.userBox {
-  text-align: right;
-  line-height: 1.1;
-}
-
-.userName {
-  font-weight: 800;
-}
-
-.userRole {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.content {
-  padding: 18px;
-}
-/* Chips das anilhas */
+/* chips das anilhas */
 .ringGrid {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
   margin-top: 12px;
 }
 
 .ringChip {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  color: var(--text);
+  padding: 6px 10px;
   border-radius: 999px;
-  padding: 7px 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.ringChip:hover {
-  background: #f3f4f6;
+  border: 1px solid var(--border);
+  background: white;
+  font-family: monospace;
 }
 
 .ringChipSelected {
-  background: #e9f5ff;
-  border-color: #93c5fd;
+  background: #111827;
+  color: white;
 }

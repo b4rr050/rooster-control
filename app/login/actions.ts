@@ -18,7 +18,6 @@ export async function loginAction(formData: FormData) {
   if (error) {
     const msgLower = (error.message ?? "").toLowerCase();
 
-    // mensagens mais humanas
     const friendly =
       msgLower.includes("invalid") ||
       msgLower.includes("credentials") ||

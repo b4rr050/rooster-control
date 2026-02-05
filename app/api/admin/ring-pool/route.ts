@@ -20,7 +20,6 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const year = Number(url.searchParams.get("year"));
   const month = Number(url.searchParams.get("month"));
-
   if (!year || !month) return NextResponse.json({ error: "year/month obrigatório" }, { status: 400 });
 
   const admin = createAdminClient();

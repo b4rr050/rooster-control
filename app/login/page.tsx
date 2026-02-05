@@ -27,12 +27,7 @@ export default function LoginPage({
       )}
 
       <form action={loginAction} style={{ display: "grid", gap: 12 }}>
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          required
-        />
+        <input name="email" type="email" placeholder="Email" required />
         <input
           name="password"
           type="password"

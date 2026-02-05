@@ -126,43 +126,23 @@ export default function EntradaAdminClient() {
         Gera anilhas e associa-as a produtores (entrada no sistema).
       </p>
 
-      {/* Gerar */}
       <section className="card">
         <h2 style={{ marginTop: 0 }}>Gerar anilhas</h2>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <label>
             Ano{" "}
-            <input
-              type="number"
-              value={year}
-              onChange={e => setYear(Number(e.target.value))}
-              style={{ width: 110 }}
-            />
+            <input type="number" value={year} onChange={e => setYear(Number(e.target.value))} style={{ width: 110 }} />
           </label>
 
           <label>
             Mês{" "}
-            <input
-              type="number"
-              value={month}
-              onChange={e => setMonth(Number(e.target.value))}
-              min={1}
-              max={12}
-              style={{ width: 80 }}
-            />
+            <input type="number" value={month} onChange={e => setMonth(Number(e.target.value))} min={1} max={12} style={{ width: 80 }} />
           </label>
 
           <label>
             Quantidade{" "}
-            <input
-              type="number"
-              value={count}
-              onChange={e => setCount(Number(e.target.value))}
-              min={1}
-              max={2000}
-              style={{ width: 110 }}
-            />
+            <input type="number" value={count} onChange={e => setCount(Number(e.target.value))} min={1} max={2000} style={{ width: 110 }} />
           </label>
 
           <button type="button" onClick={generate} disabled={loading}>
@@ -175,7 +155,6 @@ export default function EntradaAdminClient() {
         </div>
       </section>
 
-      {/* Pool + seleção */}
       <section className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
           <h2 style={{ margin: 0 }}>Anilhas disponíveis ({year}.{month})</h2>
@@ -215,7 +194,6 @@ export default function EntradaAdminClient() {
         )}
       </section>
 
-      {/* Associar */}
       <section className="card">
         <h2 style={{ marginTop: 0 }}>Associar anilhas a produtor</h2>
 

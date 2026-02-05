@@ -9,13 +9,11 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const rings: string[] = Array.isArray(body.rings) ? body.rings : [];
   const producer_id: string = body.producer_id;
-  const weight_kg: number | null = body.weight_kg ?? null;
   const notes: string | null = body.notes ?? null;
 
   const { data, error } = await supabase.rpc("admin_assign_rings_to_producer", {
     p_rings: rings,
     p_producer_id: producer_id,
-    p_weight_kg: weight_kg,
     p_notes: notes,
   });
 

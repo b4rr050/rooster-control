@@ -3,34 +3,23 @@ import { createClient } from "@/lib/supabase/server";
 export async function getProfile() {
   const supabase = await createClient();
 
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (userErr) {
-    console.error("Auth error:", userErr);
+  if (!user) {
     return { user: null, profile: null };
   }
 
-  if (!userData.user) {
-    return { user: null, profile: null };
-  }
-
-  const { data: profile, error: profileErr } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
-    .select("role, producer_id, name, is_active")
-    .eq("user_id", userData.user.id)
+    .select("id, user_id, role, is_active, producer_id")
+    .eq("user_id", user.id)
     .maybeSingle();
 
-  if (profileErr) {
-    console.error("Profile error:", profileErr);
-    return { user: userData.user, profile: null };
+  if (error || !profile || profile.is_active !== true) {
+    return { user, profile: null };
   }
 
-  if (!profile || !profile.is_active) {
-    return { user: userData.user, profile: null };
-  }
-
-  return {
-    user: userData.user,
-    profile,
-  };
+  return { user, profile };
 }

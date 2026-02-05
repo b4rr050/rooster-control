@@ -9,21 +9,17 @@ type Row = {
   out_reason: string | null;
   weight_kg: number | null;
   notes: string | null;
-  producers: { name: string | null } | null; // from_producer
+  producers: { name: string | null } | null;
 };
 
 export default function AdminOutHistory() {
   const [rows, setRows] = useState<Row[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   async function load() {
     setMsg(null);
-    setLoading(true);
     const res = await fetch("/api/admin/out-history?limit=200");
     const json = await res.json().catch(() => ({}));
-    setLoading(false);
-
     if (!res.ok) return setMsg(json.error ?? "Erro ao carregar");
     setRows(json.rows ?? []);
   }
@@ -34,11 +30,9 @@ export default function AdminOutHistory() {
 
   return (
     <section className="card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2 style={{ margin: 0 }}>Saídas (Admin)</h2>
-        <button type="button" onClick={load} disabled={loading}>
-          {loading ? "A carregar..." : "Atualizar"}
-        </button>
+        <button type="button" onClick={load}>Atualizar</button>
       </div>
 
       {msg && <p className="error">{msg}</p>}
