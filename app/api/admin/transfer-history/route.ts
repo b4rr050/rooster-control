@@ -24,7 +24,6 @@ export async function GET(req: Request) {
 
   const admin = createAdminClient();
 
-  // ⚠️ select com joins explícitos e simples
   const { data, error } = await admin
     .from("movements")
     .select(

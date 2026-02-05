@@ -9,7 +9,7 @@ type RoosterRow = { ring_number: string };
 type ExitRow = {
   ring_number: string;
   reason: "ABATE" | "VENDA" | "MORTE" | "PERDA" | "OUTRO";
-  weight_kg: string; // input
+  weight_kg: string;
 };
 
 const OUT_REASONS: ExitRow["reason"][] = ["ABATE", "VENDA", "MORTE", "PERDA", "OUTRO"];
@@ -75,7 +75,6 @@ export default function ProducerSaidaClient() {
     setSelected(next);
   }
 
-  // sincronizar rows com seleção
   useEffect(() => {
     setRows(prev => {
       const byRing = new Map(prev.map(r => [r.ring_number, r]));
@@ -170,7 +169,6 @@ export default function ProducerSaidaClient() {
         Seleciona as tuas anilhas e preenche <b>motivo</b> + <b>peso</b> por anilha.
       </p>
 
-      {/* Lista */}
       <section className="card">
         <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
           <h2 style={{ margin: 0 }}>Anilhas ativas</h2>
@@ -213,7 +211,6 @@ export default function ProducerSaidaClient() {
         )}
       </section>
 
-      {/* Tabela */}
       <section className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <h2 style={{ margin: 0 }}>Saída (por anilha)</h2>
@@ -300,7 +297,6 @@ export default function ProducerSaidaClient() {
         )}
       </section>
 
-      {/* Histórico do produtor (apenas do próprio) */}
       <OutHistoryList limit={25} />
     </main>
   );
