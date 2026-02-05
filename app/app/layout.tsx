@@ -1,4 +1,5 @@
-import LogoutButton from "app/components/LogoutButton";
+import LogoutButton from "./components/LogoutButton";
+
 
 export default function AppLayout({
   children,
