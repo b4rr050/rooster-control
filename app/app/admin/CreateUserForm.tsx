@@ -1,105 +1,137 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+type Producer = { id: string; name: string | null };
 
 export default function CreateUserForm() {
+  const supabase = createClient();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [nif, setNif] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [role, setRole] = useState<"PRODUCER" | "ADMIN">("PRODUCER");
+  const [producerId, setProducerId] = useState<string>("");
+
+  const [producers, setProducers] = useState<Producer[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
-  const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    nif: "",
-  });
-
-  function setField(key: keyof typeof form, value: string) {
-    setForm(prev => ({ ...prev, [key]: value }));
+  async function loadProducers() {
+    const { data, error } = await supabase.rpc("list_active_producers");
+    if (!error) setProducers((data ?? []) as any);
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setMsg(null);
-    setTempPassword(null);
-    setLoading(true);
+  useEffect(() => {
+    loadProducers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  async function submit() {
+    setMsg(null);
+
+    if (!name.trim()) return setMsg("Nome obrigatório");
+    if (!email.trim()) return setMsg("Email obrigatório");
+    if (!password.trim()) return setMsg("Password obrigatória");
+    if (role === "PRODUCER" && !producerId) return setMsg("Escolhe um produtor");
+
+    setLoading(true);
     const res = await fetch("/api/admin/create-user", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        address,
+        nif,
+        password,
+        role,
+        producer_id: role === "PRODUCER" ? producerId : null,
+      }),
     });
-
     const json = await res.json().catch(() => ({}));
     setLoading(false);
 
-    if (!res.ok) {
-      setMsg(`Erro: ${json.error ?? "falhou"}`);
-      return;
-    }
+    if (!res.ok) return setMsg(json.error ?? "Erro ao criar utilizador");
 
-    setMsg("Utilizador criado com sucesso.");
-    setTempPassword(json.tempPassword ?? null);
-    setForm({ name: "", email: "", phone: "", address: "", nif: "" });
-  }
-
-  async function copyPassword() {
-    if (!tempPassword) return;
-    await navigator.clipboard.writeText(tempPassword);
-    setMsg("Password copiada.");
+    setMsg("OK: utilizador criado.");
+    setName("");
+    setEmail("");
+    setPhone("");
+    setAddress("");
+    setNif("");
+    setPassword("");
+    setRole("PRODUCER");
+    setProducerId("");
   }
 
   return (
-    <section style={{ border: "1px solid #ddd", padding: 16, borderRadius: 8 }}>
-      <h2>Criar utilizador (Produtor)</h2>
+    <section className="card" style={{ display: "grid", gap: 10 }}>
+      <div style={{ display: "grid", gap: 8 }}>
+        <label>
+          Nome
+          <input value={name} onChange={e => setName(e.target.value)} />
+        </label>
 
-      <form onSubmit={submit} style={{ display: "grid", gap: 10, maxWidth: 560 }}>
-        <input
-          placeholder="Nome do produtor"
-          value={form.name}
-          onChange={e => setField("name", e.target.value)}
-          required
-        />
-        <input
-          placeholder="Email"
-          value={form.email}
-          onChange={e => setField("email", e.target.value)}
-          required
-        />
-        <input
-          placeholder="Telemóvel"
-          value={form.phone}
-          onChange={e => setField("phone", e.target.value)}
-        />
-        <input
-          placeholder="Morada"
-          value={form.address}
-          onChange={e => setField("address", e.target.value)}
-        />
-        <input
-          placeholder="NIF (9 dígitos)"
-          value={form.nif}
-          onChange={e => setField("nif", e.target.value)}
-        />
+        <label>
+          Email
+          <input value={email} onChange={e => setEmail(e.target.value)} type="email" />
+        </label>
 
-        <button disabled={loading}>{loading ? "A criar..." : "Criar"}</button>
-      </form>
+        <label>
+          Telefone
+          <input value={phone} onChange={e => setPhone(e.target.value)} />
+        </label>
 
-      {tempPassword && (
-        <div style={{ marginTop: 14, padding: 12, border: "1px solid #ccc", borderRadius: 8 }}>
-          <b>Password temporária (copiar e enviar ao produtor):</b>
-          <div style={{ marginTop: 8, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <code style={{ fontSize: 16 }}>{tempPassword}</code>
-            <button onClick={copyPassword}>Copiar</button>
-          </div>
-          <p style={{ marginTop: 8, opacity: 0.8 }}>
-            (Mostra uma vez. Se perderes, usa “Reset password” na lista.)
-          </p>
-        </div>
-      )}
+        <label>
+          Morada
+          <input value={address} onChange={e => setAddress(e.target.value)} />
+        </label>
 
-      {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+        <label>
+          NIF
+          <input value={nif} onChange={e => setNif(e.target.value)} />
+        </label>
+
+        <label>
+          Password inicial
+          <input value={password} onChange={e => setPassword(e.target.value)} type="password" />
+        </label>
+
+        <label>
+          Role
+          <select value={role} onChange={e => setRole(e.target.value as any)}>
+            <option value="PRODUCER">PRODUCER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </label>
+
+        {role === "PRODUCER" && (
+          <label>
+            Produtor associado
+            <select value={producerId} onChange={e => setProducerId(e.target.value)}>
+              <option value="">— escolher —</option>
+              {producers.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.name ?? p.id}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+
+      <button type="button" onClick={submit} disabled={loading}>
+        {loading ? "A criar..." : "Criar utilizador"}
+      </button>
+
+      {msg && <p className={msg.startsWith("OK") ? "muted" : "error"}>{msg}</p>}
     </section>
   );
 }

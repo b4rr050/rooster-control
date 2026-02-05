@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function POST(req: Request) {
+export async function GET() {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
@@ -17,20 +17,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sem permissões." }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const user_id = body.user_id as string;
-
   const admin = createAdminClient();
 
-  // gera link de recovery (email de reset)
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "recovery",
-    user_id,
-  });
+  const { data, error } = await admin
+    .from("profiles")
+    .select("id,email,role,is_active,producer_id,producers(name)")
+    .order("email", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-
-  // Se tens SMTP no Supabase, ele envia email automaticamente em muitos setups.
-  // Se não, devolvemos o link para copiar.
-  return NextResponse.json({ ok: true, action_link: data?.properties?.action_link ?? null });
+  return NextResponse.json({ rows: data ?? [] });
 }

@@ -9,28 +9,35 @@ export async function POST(req: Request) {
 
   const { data: me } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,is_active")
     .eq("user_id", userData.user.id)
     .single();
 
-  if (!me || me.role !== "ADMIN") {
+  if (!me || me.role !== "ADMIN" || me.is_active !== true) {
     return NextResponse.json({ error: "Sem permissões." }, { status: 403 });
   }
 
-  const body = await req.json();
-  const targetUserId = String(body.user_id ?? "").trim();
-  const isActive = Boolean(body.is_active);
-
-  if (!targetUserId) return NextResponse.json({ error: "user_id em falta." }, { status: 400 });
+  const body = await req.json().catch(() => ({}));
+  const user_id = body.user_id as string;
 
   const admin = createAdminClient();
 
+  const { data: prof, error: profErr } = await admin
+    .from("profiles")
+    .select("is_active")
+    .eq("user_id", user_id)
+    .single();
+
+  if (profErr || !prof) return NextResponse.json({ error: "Perfil não encontrado" }, { status: 400 });
+
+  const nextActive = !prof.is_active;
+
   const { error } = await admin
     .from("profiles")
-    .update({ is_active: isActive })
-    .eq("user_id", targetUserId);
+    .update({ is_active: nextActive })
+    .eq("user_id", user_id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, is_active: nextActive });
 }

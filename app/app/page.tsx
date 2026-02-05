@@ -1,115 +1,134 @@
-import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/getProfile";
-import { createAdminClient } from "@/lib/supabase/admin";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
-type MoveRow = {
-  id: string;
-  date: string;
-  type: string;
-  ring_number: string;
-  weight_kg: number | null;
-  out_reason: string | null;
-  transfer_reason: string | null;
-  from_producer_id: string | null;
-  to_producer_id: string | null;
-  from_producer?: { name: string | null } | null;
-  to_producer?: { name: string | null } | null;
-};
-
-function actorProducerName(m: MoveRow) {
-  // quem registou / mais legível:
-  // IN -> destino; OUT -> origem; TRANSFER -> origem -> destino
-  if (m.type === "IN") return m.to_producer?.name ?? m.to_producer_id ?? "";
-  return m.from_producer?.name ?? m.from_producer_id ?? "";
-}
-
-export default async function Dashboard() {
+export default async function DashboardPage() {
   const { user, profile } = await getProfile();
-  if (!user) return <p>Não autenticado.</p>;
-  if (!profile) return <p>Perfil não encontrado/ativo.</p>;
+  if (!user) {
+    return (
+      <main>
+        <h1>Não autenticado</h1>
+        <p>Por favor faz login primeiro.</p>
+        <Link href="/login">Ir para login</Link>
+      </main>
+    );
+  }
 
-  // Stock do produtor (ou global se admin via trigger/RLS, mas aqui deixamos simples)
+  if (!profile) {
+    return (
+      <main>
+        <h1>Perfil não encontrado</h1>
+        <p>O utilizador existe, mas não tem perfil ativo no sistema.</p>
+      </main>
+    );
+  }
+
   const supabase = await createClient();
-  const { data: stockRows } = await supabase
-    .from("roosters")
-    .select("ring_number")
-    .eq("status", "ACTIVE");
 
-  const stock = stockRows?.length ?? 0;
+  // stock atual (roosters ativos do produtor; admin vê total global)
+  let stock = 0;
 
-  // ADMIN: mostrar últimos movimentos IN/OUT/TRANSFER com produtor
-  let moves: MoveRow[] = [];
   if (profile.role === "ADMIN") {
-    const admin = createAdminClient();
+    const { count } = await supabase
+      .from("roosters")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "ACTIVE");
+    stock = count ?? 0;
+  } else {
+    const { count } = await supabase
+      .from("roosters")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "ACTIVE")
+      .eq("current_producer_id", profile.producer_id);
+    stock = count ?? 0;
+  }
 
-    const { data, error } = await admin
+  // últimos movimentos (admin: global; produtor: apenas dele)
+  let movements: any[] = [];
+
+  if (profile.role === "ADMIN") {
+    const { data } = await supabase
       .from("movements")
-      .select(
-        `
-        id,date,type,ring_number,weight_kg,out_reason,transfer_reason,from_producer_id,to_producer_id,
-        from_producer:from_producer_id(name),
-        to_producer:to_producer_id(name)
-        `
-      )
+      .select("id,type,ring_number,date,out_reason,transfer_reason,weight_kg,from_producer_id,to_producer_id")
       .order("date", { ascending: false })
-      .limit(25);
+      .limit(20);
 
-    if (!error) moves = (data ?? []) as any;
+    movements = data ?? [];
+  } else {
+    const { data } = await supabase
+      .from("movements")
+      .select("id,type,ring_number,date,out_reason,transfer_reason,weight_kg,from_producer_id,to_producer_id")
+      .or(`from_producer_id.eq.${profile.producer_id},to_producer_id.eq.${profile.producer_id}`)
+      .order("date", { ascending: false })
+      .limit(20);
+
+    movements = data ?? [];
   }
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <div style={{ background: "white", border: "1px solid #eee", borderRadius: 12, padding: 16 }}>
-        <h1 style={{ marginTop: 0 }}>Dashboard</h1>
-        <p style={{ margin: 0 }}><b>Utilizador:</b> {profile.name ?? user.email}</p>
-        <p style={{ margin: 0 }}><b>Perfil:</b> {profile.role}</p>
-        <p style={{ margin: 0 }}><b>Stock atual:</b> {stock}</p>
-      </div>
+    <main style={{ display: "grid", gap: 16 }}>
+      <h1>Dashboard</h1>
+
+      <section className="card">
+        <div style={{ display: "grid", gap: 6 }}>
+          <div>
+            Utilizador: <b>{profile.role === "ADMIN" ? "Administrador" : "Produtor"}</b>
+          </div>
+          <div>
+            Perfil: <b>{profile.role}</b>
+          </div>
+          <div>
+            Stock atual: <b>{stock}</b>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
+        <h2 style={{ marginTop: 0 }}>Últimos movimentos</h2>
+
+        {movements.length === 0 ? (
+          <p style={{ opacity: 0.8, marginBottom: 0 }}>Sem movimentos.</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table cellPadding={10} style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th align="left">Data/Hora</th>
+                  <th align="left">Tipo</th>
+                  <th align="left">Anilha</th>
+                  <th align="left">Motivo</th>
+                  <th align="right">Kg</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movements.map(m => (
+                  <tr key={m.id}>
+                    <td style={{ whiteSpace: "nowrap" }}>{new Date(m.date).toLocaleString("pt-PT")}</td>
+                    <td>{m.type}</td>
+                    <td style={{ fontFamily: "monospace" }}>{m.ring_number}</td>
+                    <td>{m.out_reason ?? m.transfer_reason ?? ""}</td>
+                    <td align="right">{Number(m.weight_kg ?? 0).toFixed(3)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {profile.role === "ADMIN" && (
-        <div style={{ background: "white", border: "1px solid #eee", borderRadius: 12, padding: 16 }}>
-          <h2 style={{ marginTop: 0 }}>Últimos movimentos</h2>
-
-          {moves.length === 0 ? (
-            <p>Sem movimentos.</p>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table cellPadding={10} style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th align="left">Data/Hora</th>
-                    <th align="left">Produtor</th>
-                    <th align="left">Tipo</th>
-                    <th align="left">Anilha</th>
-                    <th align="left">Motivo</th>
-                    <th align="right">Kg</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {moves.map(m => {
-                    const motivo =
-                      m.type === "OUT"
-                        ? (m.out_reason ?? "")
-                        : m.type === "TRANSFER"
-                          ? (m.transfer_reason ?? "")
-                          : "";
-                    return (
-                      <tr key={m.id} style={{ borderTop: "1px solid #eee" }}>
-                        <td style={{ whiteSpace: "nowrap" }}>{new Date(m.date).toLocaleString("pt-PT")}</td>
-                        <td>{actorProducerName(m)}</td>
-                        <td>{m.type}</td>
-                        <td style={{ fontFamily: "monospace" }}>{m.ring_number}</td>
-                        <td>{motivo}</td>
-                        <td align="right">{Number(m.weight_kg ?? 0).toFixed(3)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        <section className="card">
+          <h2 style={{ marginTop: 0 }}>Atalhos Admin</h2>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link href="/app/admin">
+              <button type="button">Administração</button>
+            </Link>
+            <Link href="/app/entrada">
+              <button type="button">Entrada</button>
+            </Link>
+          </div>
+        </section>
       )}
-    </div>
+    </main>
   );
 }
