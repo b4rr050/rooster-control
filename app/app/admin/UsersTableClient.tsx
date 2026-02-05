@@ -35,17 +35,23 @@ export default function UsersTableClient() {
     await load();
   }
 
-  async function resetPassword(user_id: string) {
-    setMsg(null);
-    const res = await fetch("/api/admin/reset-password", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id }),
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) return setMsg(json.error ?? "Erro");
-    setMsg("OK: password reset enviada.");
+ async function resetPassword(user_id: string) {
+  setMsg(null);
+  const res = await fetch("/api/admin/reset-password", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ user_id }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) return setMsg(json.error ?? "Erro");
+
+  if (json.temp_password) {
+    setMsg(`OK: password temporária: ${json.temp_password}`);
+  } else {
+    setMsg("OK: password reset.");
   }
+}
+
 
   useEffect(() => {
     load();

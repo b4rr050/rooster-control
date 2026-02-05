@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+function randomPassword(len = 12) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+  let out = "";
+  for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
@@ -18,19 +25,19 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const user_id = body.user_id as string;
+  const user_id = String(body.user_id ?? "").trim();
+  if (!user_id) return NextResponse.json({ error: "user_id obrigatório" }, { status: 400 });
 
   const admin = createAdminClient();
 
-  // gera link de recovery (email de reset)
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "recovery",
-    user_id,
+  const newPassword = randomPassword(12);
+
+  const { error } = await admin.auth.admin.updateUserById(user_id, {
+    password: newPassword,
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  // Se tens SMTP no Supabase, ele envia email automaticamente em muitos setups.
-  // Se não, devolvemos o link para copiar.
-  return NextResponse.json({ ok: true, action_link: data?.properties?.action_link ?? null });
+  // devolvemos a password para o admin copiar e enviar ao produtor
+  return NextResponse.json({ ok: true, temp_password: newPassword });
 }
