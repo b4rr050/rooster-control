@@ -23,12 +23,15 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 export default async function SaidaPage() {
   const supabase = await createClient();
-  const profile = await getProfile();
+  const { user, profile } = await getProfile();
 
-  if (!profile) {
+  if (!user || !profile) {
     return (
-      <div className="p-6">
+      <div className="p-6 space-y-3">
         <p>Sessão inválida. Volte a fazer login.</p>
+        <Link className="text-sm underline" href="/login">
+          Ir para login
+        </Link>
       </div>
     );
   }
