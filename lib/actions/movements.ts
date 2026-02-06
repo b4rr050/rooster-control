@@ -25,8 +25,9 @@ export async function exitRoosterAction(formData: FormData) {
   if (weightStr && weight_kg === null) return { ok: false, error: "Peso inválido." };
 
   const supabase = await createClient();
-  const profile = await getProfile();
-  if (!profile?.user_id) return { ok: false, error: "Sessão inválida." };
+  const { user, profile } = await getProfile();
+
+  if (!user || !profile) return { ok: false, error: "Sessão inválida." };
 
   const { error } = await supabase.rpc("exit_rooster", {
     p_ring_number: ring_number,
@@ -51,8 +52,9 @@ export async function transferRoosterAction(formData: FormData) {
     return { ok: false, error: "Motivo de transferência inválido." };
 
   const supabase = await createClient();
-  const profile = await getProfile();
-  if (!profile?.user_id) return { ok: false, error: "Sessão inválida." };
+  const { user, profile } = await getProfile();
+
+  if (!user || !profile) return { ok: false, error: "Sessão inválida." };
 
   const { error } = await supabase.rpc("transfer_rooster", {
     p_ring_number: ring_number,
@@ -66,13 +68,11 @@ export async function transferRoosterAction(formData: FormData) {
 }
 
 function parseRingNumbers(raw: string): string[] {
-  // aceita linhas, vírgulas, espaços
   const parts = raw
     .split(/[\n,;\t ]+/g)
     .map((s) => s.trim())
     .filter(Boolean);
 
-  // unique preservando ordem
   const seen = new Set<string>();
   const out: string[] = [];
   for (const p of parts) {
@@ -99,12 +99,12 @@ export async function transferRoostersBulkAction(formData: FormData) {
     return { ok: false, error: "Motivo de transferência inválido." };
 
   const supabase = await createClient();
-  const profile = await getProfile();
-  if (!profile?.user_id) return { ok: false, error: "Sessão inválida." };
+  const { user, profile } = await getProfile();
+
+  if (!user || !profile) return { ok: false, error: "Sessão inválida." };
 
   const results: { ring_number: string; ok: boolean; error?: string }[] = [];
 
-  // processar sequencialmente (evita rate limits e facilita debug)
   for (const rn of ring_numbers) {
     const { error } = await supabase.rpc("transfer_rooster", {
       p_ring_number: rn,
