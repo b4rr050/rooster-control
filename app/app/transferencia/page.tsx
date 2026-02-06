@@ -25,19 +25,26 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 export default async function TransferenciaPage() {
   const supabase = await createClient();
-  const profile = await getProfile();
+  const { user, profile } = await getProfile();
 
-  if (!profile) {
+  if (!user || !profile) {
     return (
-      <div className="p-6">
+      <div className="p-6 space-y-3">
         <p>Sessão inválida. Volte a fazer login.</p>
+        <Link className="text-sm underline" href="/login">
+          Ir para login
+        </Link>
       </div>
     );
   }
 
   const isAdmin = profile.role === "ADMIN";
 
-  const { data: producersData } = await supabase.from("producers").select("id, name").order("name", { ascending: true });
+  const { data: producersData } = await supabase
+    .from("producers")
+    .select("id, name")
+    .order("name", { ascending: true });
+
   const producers = (producersData ?? []) as Producer[];
 
   let query = supabase
