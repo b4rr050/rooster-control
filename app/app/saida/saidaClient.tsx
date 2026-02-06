@@ -7,6 +7,8 @@ type Props = {
   role: "ADMIN" | "PRODUCER";
 };
 
+const OUT_REASONS = ["ABATE", "VENDA", "MORTE", "PERDA", "OUTRO"] as const;
+
 export default function SaidaClient({ role }: Props) {
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
@@ -23,34 +25,36 @@ export default function SaidaClient({ role }: Props) {
             setMsg(res.ok ? "Saída registada com sucesso." : res.error ?? "Erro ao registar saída.");
           });
         }}
-        className="grid gap-3 md:grid-cols-4"
+        className="grid gap-3 md:grid-cols-6"
       >
-        <div className="md:col-span-1">
+        <div className="md:col-span-2">
           <label className="text-xs opacity-70">Anilha</label>
-          <input
-            name="ring_number"
-            className="w-full rounded-lg border px-3 py-2"
-            placeholder="ex: PT-000123"
-            required
-          />
+          <input name="ring_number" className="w-full rounded-lg border px-3 py-2" placeholder="ex: PT-000123" required />
         </div>
 
         <div className="md:col-span-2">
           <label className="text-xs opacity-70">Motivo</label>
-          <input name="reason" className="w-full rounded-lg border px-3 py-2" placeholder="ex: venda / óbito" required />
+          <select name="out_reason" className="w-full rounded-lg border px-3 py-2" required defaultValue="VENDA">
+            {OUT_REASONS.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="md:col-span-1">
+        <div className="md:col-span-2">
           <label className="text-xs opacity-70">Peso (kg)</label>
-          <input name="weight" className="w-full rounded-lg border px-3 py-2" placeholder="opcional" inputMode="decimal" />
+          <input name="weight_kg" className="w-full rounded-lg border px-3 py-2" placeholder="opcional" inputMode="decimal" />
         </div>
 
-        <div className="md:col-span-4 flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg border px-4 py-2 text-sm disabled:opacity-60"
-          >
+        <div className="md:col-span-6">
+          <label className="text-xs opacity-70">Notas</label>
+          <input name="notes" className="w-full rounded-lg border px-3 py-2" placeholder="opcional" />
+        </div>
+
+        <div className="md:col-span-6 flex items-center gap-3">
+          <button type="submit" disabled={pending} className="rounded-lg border px-4 py-2 text-sm disabled:opacity-60">
             {pending ? "A registar..." : "Confirmar saída"}
           </button>
 

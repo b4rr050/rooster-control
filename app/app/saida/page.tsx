@@ -8,13 +8,18 @@ import SaidaClient from "./saidaClient";
 
 type MovementRow = {
   id: string;
-  created_at: string;
+  date: string;
   type: "OUT";
   ring_number: string;
-  reason: string | null;
-  weight: number | null;
+  out_reason: string | null;
+  weight_kg: number | null;
+  notes: string | null;
   from_producer_id: string | null;
 };
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs">{children}</span>;
+}
 
 export default async function SaidaPage() {
   const supabase = await createClient();
@@ -30,12 +35,11 @@ export default async function SaidaPage() {
 
   const isAdmin = profile.role === "ADMIN";
 
-  // Histórico: ADMIN vê tudo; PRODUCER vê só as suas OUT
   let query = supabase
     .from("movements")
-    .select("id, created_at, type, ring_number, reason, weight, from_producer_id")
+    .select("id, date, type, ring_number, out_reason, weight_kg, notes, from_producer_id")
     .eq("type", "OUT")
-    .order("created_at", { ascending: false })
+    .order("date", { ascending: false })
     .limit(200);
 
   if (!isAdmin) {
@@ -46,17 +50,29 @@ export default async function SaidaPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold">Saídas</h1>
-        <Link className="text-sm underline" href="/app/anilha">
-          Ver anilhas
-        </Link>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">Saídas</h1>
+          <p className="text-sm opacity-70">{isAdmin ? "Histórico global (Admin)." : "Histórico do seu produtor."}</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link className="text-sm underline" href="/app/anilha">
+            Anilhas
+          </Link>
+          <Link className="text-sm underline" href="/app/transferencia">
+            Transferências
+          </Link>
+        </div>
       </div>
 
       <SaidaClient role={profile.role} />
 
       <div className="rounded-xl border p-4">
-        <h2 className="font-medium mb-3">Histórico</h2>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className="font-medium">Histórico</h2>
+          <Chip>{data?.length ?? 0} registos</Chip>
+        </div>
 
         {error && <p className="text-sm text-red-600">{error.message}</p>}
 
@@ -67,12 +83,17 @@ export default async function SaidaPage() {
             {(data as MovementRow[]).map((m) => (
               <div key={m.id} className="flex items-center justify-between rounded-lg border px-3 py-2">
                 <div className="min-w-0">
-                  <div className="font-medium truncate">Anilha {m.ring_number}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium truncate">Anilha {m.ring_number}</div>
+                    <Chip>{m.out_reason ?? "—"}</Chip>
+                    {m.weight_kg != null ? <Chip>{m.weight_kg} kg</Chip> : null}
+                  </div>
                   <div className="text-xs opacity-70">
-                    {new Date(m.created_at).toLocaleString("pt-PT")} · {m.reason ?? "—"}
-                    {m.weight != null ? ` · ${m.weight} kg` : ""}
+                    {new Date(m.date).toLocaleString("pt-PT")}
+                    {m.notes ? ` · ${m.notes}` : ""}
                   </div>
                 </div>
+
                 <Link className="text-sm underline shrink-0" href={`/app/anilha/${encodeURIComponent(m.ring_number)}`}>
                   Abrir
                 </Link>
