@@ -24,12 +24,15 @@ export default async function RingDetailPage({ params }: { params: { ring_number
   const ring_number = decodeURIComponent(params.ring_number);
 
   const supabase = await createClient();
-  const profile = await getProfile();
+  const { user, profile } = await getProfile();
 
-  if (!profile) {
+  if (!user || !profile) {
     return (
-      <div className="p-6">
+      <div className="p-6 space-y-3">
         <p>Sessão inválida. Volte a fazer login.</p>
+        <Link className="text-sm underline" href="/login">
+          Ir para login
+        </Link>
       </div>
     );
   }
@@ -52,7 +55,7 @@ export default async function RingDetailPage({ params }: { params: { ring_number
     );
   }
 
-  // Acesso PRODUCER: tem de ter ligação em movimentos (origem ou destino)
+  // PRODUCER: tem de ter ligação nos movements (origem ou destino)
   if (profile.role !== "ADMIN") {
     const pid = profile.producer_id ?? "";
 

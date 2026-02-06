@@ -29,8 +29,7 @@ function Chip({ children }: { children: React.ReactNode }) {
 }
 
 function StatusChip({ status }: { status: "ACTIVE" | "EXITED" }) {
-  const label = status === "ACTIVE" ? "ATIVA" : "SAÍDA";
-  return <Chip>{label}</Chip>;
+  return <Chip>{status === "ACTIVE" ? "ATIVA" : "SAÍDA"}</Chip>;
 }
 
 export default async function AnilhaListPage({
@@ -39,12 +38,15 @@ export default async function AnilhaListPage({
   searchParams: { q?: string; status?: string };
 }) {
   const supabase = await createClient();
-  const profile = await getProfile();
+  const { user, profile } = await getProfile();
 
-  if (!profile) {
+  if (!user || !profile) {
     return (
-      <div className="p-6">
+      <div className="p-6 space-y-3">
         <p>Sessão inválida. Volte a fazer login.</p>
+        <Link className="text-sm underline" href="/login">
+          Ir para login
+        </Link>
       </div>
     );
   }
@@ -72,9 +74,9 @@ export default async function AnilhaListPage({
 
     const { data, error } = await query;
     if (error) errorMsg = error.message;
+
     roosters = (data ?? []) as RoosterRowAdmin[];
   } else {
-    // PRODUCER: anilhas atuais + histórico (movements) ligado ao produtor
     const { data: currentData, error: currentErr } = await supabase
       .from("roosters")
       .select("ring_number")
@@ -135,9 +137,7 @@ export default async function AnilhaListPage({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Anilhas</h1>
-          <p className="text-sm opacity-70">
-            {isAdmin ? "Lista global (Admin)." : "Lista do produtor (atuais + histórico)."}
-          </p>
+          <p className="text-sm opacity-70">{isAdmin ? "Lista global (Admin)." : "Lista do produtor (atuais + histórico)."}</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -154,12 +154,7 @@ export default async function AnilhaListPage({
         <form className="grid gap-3 md:grid-cols-8" method="GET">
           <div className="md:col-span-4">
             <label className="text-xs opacity-70">Pesquisar</label>
-            <input
-              name="q"
-              defaultValue={q}
-              className="w-full rounded-lg border px-3 py-2"
-              placeholder="ex: PT-000123"
-            />
+            <input name="q" defaultValue={q} className="w-full rounded-lg border px-3 py-2" placeholder="ex: PT-000123" />
           </div>
 
           <div className="md:col-span-3">
@@ -210,7 +205,6 @@ export default async function AnilhaListPage({
                       <div className="font-medium truncate">Anilha {r.ring_number}</div>
                       <StatusChip status={r.status} />
                     </div>
-
                     <div className="text-xs opacity-70">
                       Criada: {new Date(r.created_at).toLocaleString("pt-PT")}
                       {producerName ? ` · Produtor atual: ${producerName}` : ""}
