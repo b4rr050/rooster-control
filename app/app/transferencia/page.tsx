@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { getProfile } from "@/lib/getProfile";
 import AdminTransferHistory from "./AdminTransferHistory";
 import ProducerTransferClient from "./ProducerTransferClient";
