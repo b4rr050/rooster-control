@@ -10,7 +10,8 @@ type RoosterRowAdmin = {
   status: "ACTIVE" | "EXITED";
   current_producer_id: string | null;
   created_at: string;
-  producers?: { name: string | null } | null;
+  // Supabase tipa o join como array
+  producers?: { name: string | null }[] | null;
 };
 
 type RoosterRow = {
@@ -137,7 +138,9 @@ export default async function AnilhaListPage({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Anilhas</h1>
-          <p className="text-sm opacity-70">{isAdmin ? "Lista global (Admin)." : "Lista do produtor (atuais + histórico)."}</p>
+          <p className="text-sm opacity-70">
+            {isAdmin ? "Lista global (Admin)." : "Lista do produtor (atuais + histórico)."}
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -154,7 +157,12 @@ export default async function AnilhaListPage({
         <form className="grid gap-3 md:grid-cols-8" method="GET">
           <div className="md:col-span-4">
             <label className="text-xs opacity-70">Pesquisar</label>
-            <input name="q" defaultValue={q} className="w-full rounded-lg border px-3 py-2" placeholder="ex: PT-000123" />
+            <input
+              name="q"
+              defaultValue={q}
+              className="w-full rounded-lg border px-3 py-2"
+              placeholder="ex: PT-000123"
+            />
           </div>
 
           <div className="md:col-span-3">
@@ -195,7 +203,7 @@ export default async function AnilhaListPage({
             {roosters.map((r) => {
               const producerName =
                 isAdmin && r.status === "ACTIVE"
-                  ? (r.producers?.name ?? (r.current_producer_id ? "Produtor (sem nome)" : "—"))
+                  ? (r.producers?.[0]?.name ?? (r.current_producer_id ? "Produtor (sem nome)" : "—"))
                   : null;
 
               return (
