@@ -1,4 +1,4 @@
-import LogoutButton from "@/components/LogoutButton";
+import LogoutButton from "./components/LogoutButton";
 import Nav from "./Nav";
 import { getProfile } from "@/lib/getProfile";
 
