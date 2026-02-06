@@ -1,11 +1,12 @@
 import { loginAction } from "./actions";
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { error?: string };
+  searchParams?: Promise<{ error?: string }>;
 }) {
-  const error = searchParams?.error;
+  const sp = (await searchParams) ?? {};
+  const error = sp.error;
 
   return (
     <main style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
@@ -28,12 +29,7 @@ export default function LoginPage({
 
       <form action={loginAction} style={{ display: "grid", gap: 12 }}>
         <input name="email" type="email" placeholder="Email" required />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          required
-        />
+        <input name="password" type="password" placeholder="Password" required />
         <button type="submit">Entrar</button>
       </form>
     </main>
