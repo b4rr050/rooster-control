@@ -36,32 +36,33 @@ export default async function DashboardPage() {
     );
   }
 
+  // ✅ TS narrowing definitivo
+  const safeProfile = profile;
+
   const supabase = await createClient();
 
-  // últimos movimentos
   const { data: movements } = await supabase
     .from("movements")
     .select("*")
     .order("date", { ascending: false })
     .limit(10);
 
-  // mapa de produtores (para ADMIN)
   let producerNameById: Record<string, string> = {};
 
-  if (profile.role === "ADMIN") {
+  if (safeProfile.role === "ADMIN") {
     const { data: producers } = await supabase
       .from("producers")
       .select("id,name");
 
     producerNameById =
-      producers?.reduce((acc: any, p: any) => {
+      producers?.reduce((acc: Record<string, string>, p: any) => {
         acc[p.id] = p.name;
         return acc;
       }, {}) ?? {};
   }
 
   function producerLabel(m: Movement) {
-    if (profile.role !== "ADMIN") return "";
+    if (safeProfile.role !== "ADMIN") return "";
 
     if (m.type === "IN") return producerNameById[m.to_producer_id ?? ""] ?? "";
     if (m.type === "OUT") return producerNameById[m.from_producer_id ?? ""] ?? "";
@@ -79,9 +80,9 @@ export default async function DashboardPage() {
       <h1>Dashboard</h1>
 
       <section style={{ marginTop: 20 }}>
-        <strong>Utilizador:</strong> {profile.name ?? user.email}
+        <strong>Utilizador:</strong> {safeProfile.name ?? user.email}
         <br />
-        <strong>Perfil:</strong> {profile.role}
+        <strong>Perfil:</strong> {safeProfile.role}
       </section>
 
       <section style={{ marginTop: 40 }}>
@@ -104,7 +105,7 @@ export default async function DashboardPage() {
                 <th>Tipo</th>
                 <th>Motivo</th>
                 <th>Peso (kg)</th>
-                {profile.role === "ADMIN" && <th>Produtor</th>}
+                {safeProfile.role === "ADMIN" && <th>Produtor</th>}
               </tr>
             </thead>
             <tbody>
@@ -115,7 +116,7 @@ export default async function DashboardPage() {
                   <td>{m.type}</td>
                   <td>{m.out_reason ?? "-"}</td>
                   <td>{m.weight_kg ?? "-"}</td>
-                  {profile.role === "ADMIN" && (
+                  {safeProfile.role === "ADMIN" && (
                     <td>{producerLabel(m)}</td>
                   )}
                 </tr>
