@@ -26,19 +26,17 @@ export async function getProfile(): Promise<{
 
   const user = { id: userData.user.id, email: userData.user.email ?? null };
 
-  // IMPORTANT: procurar por user_id (não por id)
-  const { data: profile, error: profErr } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("id,user_id,email,role,is_active,producer_id,name,phone,address,nif")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .maybeSingle();
 
-  // Se RLS estiver a bloquear, aqui normalmente vem error
-  if (profErr) {
-    // devolve user mas profile null (para mostrares mensagem/diagnóstico)
+  // Se houver erro (RLS, etc.), devolvemos profile null
+  if (error || !data) {
     return { user, profile: null };
   }
 
-  return { user, profile: (profile as any) ?? null };
+  return { user, profile: data as any };
 }
