@@ -1,39 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
-
-  const { data } = await supabase.auth.getUser();
-
-  // se não há user, manda para login
-  if (!data.user) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("error", "Sessão expirada. Faz login.");
-    return NextResponse.redirect(url);
-  }
-
-  return res;
+export function middleware(_req: NextRequest) {
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
